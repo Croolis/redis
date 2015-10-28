@@ -5,15 +5,36 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <cstring>
 
 using namespace std;
+
+class client {
+ private:
+    int sock_;
+
+ public:
+    client(int sock) : sock_(sock) {}
+
+    int recive(char *msg, int &msg_len) {
+        return recv(sock_, msg, msg_len, 0);
+    }
+    // TODO: Make it read and write whole message if (size of message > size of buffer)
+    int respond(char *msg, int &msg_len) {
+        return send(sock_, msg, msg_len, 0);
+    }
+
+    ~client() {
+        close(sock_);
+    }
+};
 
 class server {
  private:
     int listener;
     struct sockaddr_in addr;
 
- public:    
+ public:
     server() {}
     
     int init_server() {
@@ -39,22 +60,15 @@ class server {
 
     client get_client() {
         int sock = accept(listener, NULL, NULL);
-        if sock < 0
-            return NULL;
-        client c(sock, this);
+        // TODO: Do smth with incorrect value of socket
+        //if (sock < 0)
+        //    return NULL;
+        client c(sock);
         return c;
     }
 
-    int get_msg(char *buf, int &bytes_read) {
-        bytes_read = recv(sock, buf, 1024, 0);
-        if(bytes_read <= 0) {
-            return 0;
-        }
-        return 1;
-    }
-    
-    int send_msg(char *buf, int bytes_send) {
-        return send(sock, buf, bytes_send, 0);
+    ~server() {
+        close(listener);
     }
 
     /*while(1)
@@ -77,31 +91,13 @@ class server {
     }*/
 };
 
-class client {
- private:
-    int sock_;
-    server *s_;
- 
- public:
-    client(int sock, server *s) : sock_(sock), s_(s) {}
-
-    void recive(char *msg, int &msg_len) {
-        s.get_msg(msg, msg_len);
-    }
-    // TODO: Make it read and write whole message if (size of message > size of buffer)
-    void send(char *msg, int &msg_len) {
-        s.send_msg(msg, msg_len);
-    }
-
-};
-
 int main() {
-    server serv();
+    server serv;
     serv.init_server();
     client c = serv.get_client();
     char mes[1024];
     int len = 1024;
-    cout << mes << endl;
-    c.recive(mes, len);
-    cout << mes << endl;
+    len = c.recive(mes, len);
+    mes[len] = '\0';
+    c.respond(mes, len);
 }
