@@ -56,8 +56,9 @@ class parser {
     }
 
     string encode(vector<string> msg) {
-        string res;
-        res += to_string(msg.size()) + "\r\n";
+        string res = "";
+        res += to_string(msg.size());
+        res += "\r\n";
         for (int i = 0; i < msg.size(); i++) {
             res += "$";
             res += to_string(msg[i].length());

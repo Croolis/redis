@@ -1,4 +1,3 @@
-
 class client {
  private:
     int sock_;

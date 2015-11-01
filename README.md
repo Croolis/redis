@@ -1,1 +1,1 @@
-dont read me pls
+Это redis-сервер!
