@@ -25,7 +25,6 @@ class server {
             perror("bind");
             return 2;
         }
-
         listen(listener, 8);
         return 0;
     }
