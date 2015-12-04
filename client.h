@@ -68,8 +68,9 @@ class client {
         return 1;
     }
     // TODO: Make it write whole message if (size of message > size of buffer)
-    int respond(string msg, int &msg_len) {
-        return send(sock_, msg.c_str(), msg_len, 0);
+    int respond(string msg) {
+        int len = msg.length();
+        return send(sock_, msg.c_str(), len, 0);
     }
 
     ~client() {

@@ -17,4 +17,8 @@ class container {
     string get(string key) {
         return container_[key];
     }
+
+    void del(string key) {
+        container_.erase(key);
+    }
 };
