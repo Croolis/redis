@@ -12,7 +12,8 @@ class handler {
     container cont_;
 
     string set(vector<string> req) {
-        cont_.set(req[1], req[2]);
+        cout << "in handler.set " << req[1] << ' ' << req[2] << endl;
+        cont_.set_val(req[1], req[2]);
         cout << req[1] << ' ' << req[2] << endl;
         return pars_.encodeSimpleString("OK");
     }
@@ -32,6 +33,11 @@ class handler {
     string ping(vector<string> req) {
         cout << "ping" << endl;
         return pars_.encodeSimpleString("PONG");
+    }
+
+    string expire(vector<string> req) {
+        int res = cont_.set_ttl(req[1], stoll(req[2], NULL));
+        return pars_.encodeInteger(res);
     }
 
     string incorrect_message(vector<string> req) {
@@ -55,12 +61,19 @@ class handler {
         if (request[0] == "get") {
             return this->get(request);
         }
-        if (request[0] == "delete") {
+        if (request[0] == "del") {
             return this->del(request);
+        }
+        if (request[0] == "expire") {
+            return this->expire(request);
         }
         if (request[0] == "Incorrect message") {
             return this->incorrect_message(request);
         }
         return this->unknown_command(request);
+    }
+
+    void clean() {
+        cont_.del_ttl();
     }
 };

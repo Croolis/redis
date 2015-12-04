@@ -68,9 +68,11 @@ class parser {
         return "+" + msg + "\r\n";
     }
 
-    // string ecnodeInteger(int msg) {
-    //     return ":" + string(msg) + "\r\n";
-    // }
+    string encodeInteger(int msg) {
+        string t = to_string(msg);
+        cout << "in parser.encode " << t << endl;
+        return ":" + t + "\r\n";
+    }
 
     string encodeError(string msg) {
         return "-" + msg + "\r\n";
