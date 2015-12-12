@@ -29,7 +29,7 @@ class container {
             string key, value;
             while (true) {
                 p++;
-                if (p == len) {
+                if (p >= len) {
                     len = read(fd, str, sizeof(str));
                     if (len < 0)
                         cout << "Can not open log\n";
@@ -37,11 +37,7 @@ class container {
                 }
                 if (len <= 0)
                     break;
-                if (condition == 0) {
-                    container_[key] = value;
-                    key = "";
-                    value = "";
-                }
+                cout << p << ' ' << condition << str[p] << endl;
                 if (condition == 0 || condition == 2) {
                     if (str[p] == '$') {
                         condition = (condition + 1) % 4;
@@ -65,6 +61,10 @@ class container {
                     num--;
                     if (num == 0) {
                         condition = (condition + 1) % 4;
+                        container_[key] = value;
+                        cout << key << ' ' << value << endl;
+                        key = "";
+                        value = "";
                         continue;
                     }
                 }
@@ -72,6 +72,15 @@ class container {
             close(fd);
         }
         log.open("log");
+        auto t = container_.begin();
+        while (t != container_.end()) {
+            if (t->first != "" || t->second != "") {
+                cout << "GOVNO " << t->first << ' ' << t->second << endl;
+                log << t->first.length() << '$' << t->first << t->second.length() << '$' << t->second;
+                log.flush();
+            }
+            t++;
+        }
     }
 
     ~container() {
