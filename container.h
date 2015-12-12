@@ -17,12 +17,11 @@ class container {
     set<pair<string, time_t> > ttl_set_;
     ofstream log;
 
- public:
-    container() {
-        string path = "log";
-        int fd = open(path.c_str(), O_RDONLY);
+    void load_from_file(string name) {
+        container_.clear();
+        int fd = open(name.c_str(), O_RDONLY);
         if (fd == -1) {
-            cout << "Can not open log\n";
+            cout << "Can not open " << name << endl;
         } else {
             char str[4096];
             int len = 0, p = -1, num = 0, condition = 0;
@@ -32,12 +31,11 @@ class container {
                 if (p >= len) {
                     len = read(fd, str, sizeof(str));
                     if (len < 0)
-                        cout << "Can not open log\n";
+                        cout << "Error in reading " << name << endl;
                     p = 0;
                 }
                 if (len <= 0)
                     break;
-                cout << p << ' ' << condition << str[p] << endl;
                 if (condition == 0 || condition == 2) {
                     if (str[p] == '$') {
                         condition = (condition + 1) % 4;
@@ -62,7 +60,6 @@ class container {
                     if (num == 0) {
                         condition = (condition + 1) % 4;
                         container_[key] = value;
-                        cout << key << ' ' << value << endl;
                         key = "";
                         value = "";
                         continue;
@@ -71,11 +68,16 @@ class container {
             }
             close(fd);
         }
-        log.open("log");
+    }
+
+ public:
+    container() {
+        load_from_file("log.t");
+
+        log.open("log.t");
         auto t = container_.begin();
         while (t != container_.end()) {
             if (t->first != "" || t->second != "") {
-                cout << "GOVNO " << t->first << ' ' << t->second << endl;
                 log << t->first.length() << '$' << t->first << t->second.length() << '$' << t->second;
                 log.flush();
             }
@@ -83,12 +85,40 @@ class container {
         }
     }
 
+    void save_screen(string name) {
+        ofstream screen_file;
+        screen_file.open(name + ".t");
+        auto t = container_.begin();
+        while (t != container_.end()) {
+            if (t->first != "" || t->second != "") {
+                screen_file << t->first.length() << '$' << t->first << t->second.length() << '$' << t->second;
+                screen_file.flush();
+            }
+            t++;
+        }
+        screen_file.close();
+    }
+
+    void load_screen(string name) {
+        container_.clear();
+        load_from_file(name);
+        log.close();
+        log.open("log.t");
+        auto t = container_.begin();
+        while (t != container_.end()) {
+            if (t->first != "" || t->second != "") {
+                log << t->first.length() << '$' << t->first << t->second.length() << '$' << t->second;
+                log.flush();
+            }
+            t++;
+        }        
+    }
+
     ~container() {
         log.close();
     }
 
     void set_val(string key, string value) {
-        cout << "in container.set " << key << ' ' << value << endl;
         container_[key] = value;
         log << key.length() << '$' << key << value.length() << '$' << value;
         log.flush();
