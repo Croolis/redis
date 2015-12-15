@@ -14,16 +14,18 @@ using namespace std;
 
 int main() {
     server serv;
-    serv.init_server();
+    if (serv.init_server())
+        return 0;
     handler handler_;
     long long last_clean = 0;
     int len = 1024;
+    serv.get_client();
     while (true) {
         string msg;
-        client c = serv.get_client();
-        while (c.recive(msg) > 0) {
+        int sock;
+        if (serv.recive(msg, sock) > 0) {
             string resp = handler_.handle(msg);
-            c.respond(resp);
+            serv.respond(resp, sock);
             if (time(NULL) - last_clean < 10) {
                 handler_.clean();
                 last_clean = time(NULL);

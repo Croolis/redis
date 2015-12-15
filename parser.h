@@ -70,7 +70,6 @@ class parser {
 
     string encodeInteger(int msg) {
         string t = to_string(msg);
-        cout << "in parser.encode " << t << endl;
         return ":" + t + "\r\n";
     }
 
@@ -80,9 +79,13 @@ class parser {
 
     string encodeBulkString(string msg) {
         string res = "$";
-        res += to_string(msg.length());
-        res += "\r\n";
-        res += msg;
+        if (msg.length() > 0) {
+            res += to_string(msg.length());
+            res += "\r\n";
+            res += msg;
+        } else {
+            res += "-1";
+        }
         res += "\r\n";
         return res;
     }

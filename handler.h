@@ -18,13 +18,13 @@ class handler {
     }
 
     string get(vector<string> req) {
-        string value = cont_->get(req[1]);
+        string value = cont_->get_val(req[1]);
         cout << "GET: " << req[1] << ' ' << value << endl;
         return pars_.encodeBulkString(value);
     }
 
     string del(vector<string> req) {
-        cont_->del(req[1]);
+        cont_->del_val(req[1]);
         cout << "DEL: " << req[1] << endl;
         return pars_.encodeSimpleString("OK");
     }
@@ -35,6 +35,7 @@ class handler {
     }
 
     string expire(vector<string> req) {
+        cout << "EXPIRE: " << req[1] << endl;
         int res = cont_->set_ttl(req[1], stoll(req[2], NULL));
         return pars_.encodeInteger(res);
     }
@@ -66,8 +67,8 @@ class handler {
     }
 
     string handle(string msg) {
+        cout << "Handling" << endl;
         vector<string> request = pars_.decode(msg);
-        
         if (request[0] == "ping") {
             return this->ping(request);
         }          
