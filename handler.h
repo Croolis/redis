@@ -41,6 +41,24 @@ class handler {
         return pars_.encodeInteger(res);
     }
 
+    string save(vector<string> req) {
+        cout << "SAVE" << endl;
+        if (req.size() < 2) {
+            req.push_back("last");
+        }
+        cont_->save_screen(req[1]);
+        return pars_.encodeSimpleString("OK");
+    }
+
+    string load(vector<string> req) {
+        cout << "LOAD" << endl;
+        if (req.size() < 2) {
+            req.push_back("last");
+        }
+        cont_->load_screen(req[1]);
+        return pars_.encodeSimpleString("OK");
+    }
+
     string incorrect_message(vector<string> req) {
         cout << "Incorrect message" << endl;
         return pars_.encodeError("Error in pasring your message");
@@ -78,16 +96,26 @@ class handler {
             return this->ping(request);
         }          
         if (request[0] == "set") {
-            return this->set(request);
+            if (request.size() >= 3)
+                return this->set(request);
         }
         if (request[0] == "get") {
-            return this->get(request);
+            if (request.size() >= 2)
+                return this->get(request);
         }
         if (request[0] == "del") {
-            return this->del(request);
+            if (request.size() >= 2)
+                return this->del(request);
         }
         if (request[0] == "expire") {
-            return this->expire(request);
+            if (request.size() >= 3)
+                return this->expire(request);
+        }
+        if (request[0] == "save") {
+            return this->save(request);
+        }
+        if (request[0] == "load") {
+            return this->load(request);
         }
         if (request[0] == "Incorrect message") {
             return this->incorrect_message(request);

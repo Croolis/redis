@@ -59,8 +59,7 @@ class server {
         timeout.tv_sec = 1;
         timeout.tv_usec = 0;
         fd_set rdy_set = socket_set;
-        cout << "start selecting\n";
-        cout << "select is " << select(max_sock + 1, &rdy_set, NULL, NULL, &timeout) << endl;
+        select(max_sock + 1, &rdy_set, NULL, NULL, &timeout);
         for (int i = 0; i < socks.size(); i++) {
             if (FD_ISSET(socks[i], &rdy_set))
                 return i;

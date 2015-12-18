@@ -134,16 +134,17 @@ class container {
 
     void save_screen(const string &name) {
         ofstream screen_file;
+        cout << "SAVING\n";
         screen_file.open(name + ".t");
         auto t = container_.begin();
         time_t cur_time = time(NULL);
         while (t != container_.end()) {
             if (t->first != "" || t->second != "") {
-                log << "1#" << t->first.length() << '$' << t->first << t->second.length() << '$' << t->second;
-                log.flush();
+                screen_file << "1#" << t->first.length() << '$' << t->first << t->second.length() << '$' << t->second;
+                screen_file.flush();
                 if ((ttl_.count(t->first)) > 0 && (ttl_[t->first] > cur_time)) {
-                    log << "3#" << t->first.length() << '$' << t->first << to_string(ttl_[t->first]).length() << '$' << ttl_[t->first];
-                    log.flush();
+                    screen_file << "3#" << t->first.length() << '$' << t->first << to_string(ttl_[t->first]).length() << '$' << ttl_[t->first];
+                    screen_file.flush();
                 }
             }
             t++;
@@ -153,7 +154,7 @@ class container {
 
     void load_screen(const string &name) {
         container_.clear();
-        load_from_file(name);
+        load_from_file(name + ".t");
         log.close();
         log.open("log.t");
         auto t = container_.begin();
