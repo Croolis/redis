@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include <time.h>
+#include <thread>
 #include "server.h"
 #include "handler.h"
 
@@ -19,7 +20,7 @@ int main() {
     handler handler_;
     long long last_clean = 0;
     int len = 1024;
-    serv.get_client();
+    thread tr([&serv](){serv.get_client();});
     while (true) {
         string msg;
         int sock;

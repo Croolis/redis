@@ -12,20 +12,21 @@ class handler {
     container *cont_;
 
     string set(vector<string> req) {
-        cont_->set_val(req[1], req[2]);
         cout << "SET: " << req[1] << ' ' << req[2] << endl;
+        cont_->set_val(req[1], req[2]);
         return pars_.encodeSimpleString("OK");
     }
 
     string get(vector<string> req) {
+        cout << "GET: " << req[1] << ' ';
         string value = cont_->get_val(req[1]);
-        cout << "GET: " << req[1] << ' ' << value << endl;
+        cout << value << endl;
         return pars_.encodeBulkString(value);
     }
 
     string del(vector<string> req) {
-        cont_->del_val(req[1]);
         cout << "DEL: " << req[1] << endl;
+        cont_->del_val(req[1]);
         return pars_.encodeSimpleString("OK");
     }
 
@@ -69,6 +70,10 @@ class handler {
     string handle(string msg) {
         cout << "Handling" << endl;
         vector<string> request = pars_.decode(msg);
+        if (request.size() == 0) {
+            cout << "Error in decoding" << endl;
+            return this->incorrect_message(request);
+        }
         if (request[0] == "ping") {
             return this->ping(request);
         }          

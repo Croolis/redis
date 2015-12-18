@@ -19,13 +19,13 @@ class parser {
                 offset++;
             }
             if (offset + 1 >= msg.length() || msg[offset] != '\r' || msg[offset + 1] != '\n'){            
-                    error.push_back(to_string(offset));
-                    return error;
-                }
+                error.push_back(to_string(offset));
+                return error;
+            }
             offset += 2;
             if (s == "") {
                 error.push_back(to_string(offset));
-                return error;                    
+                return error;
             }
             int size = stoi(s);
             for (int counter = 0; counter < size; counter++) {
@@ -41,7 +41,7 @@ class parser {
                 }
                 if (s == "") {
                     error.push_back(to_string(offset));
-                    return error;                    
+                    return error;
                 }
                 int len = stoi(s);
                 if (offset + 1 >= msg.length() || msg[offset] != '\r' || msg[offset + 1] != '\n'){
@@ -59,8 +59,9 @@ class parser {
                     return error;
                 }
                 offset += 2;
-                res.push_back(st);            
-            }            return res;
+                res.push_back(st);
+            }            
+            return res;
         }
     }
 

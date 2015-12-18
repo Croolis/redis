@@ -51,11 +51,12 @@ class server {
         reminder.push_back("");
         stop.push_back(0);
         cout << "added client correctly" << endl;
+        this->get_client();
     }
 
     int get_sender() {
         struct timeval timeout;
-        timeout.tv_sec = 20;
+        timeout.tv_sec = 1;
         timeout.tv_usec = 0;
         fd_set rdy_set = socket_set;
         cout << "start selecting\n";
@@ -74,8 +75,14 @@ class server {
         cout << "Recive" << endl;
         socket = socks[sock_num];
         char buf[1024];
-        recv(socket, buf, 1024, 0);
+        if (recv(socket, buf, 1024, 0) <= 0) {
+            swap(socks[sock_num], socks[socks.size() - 1]);
+            socks.pop_back();
+            FD_CLR(socket, &socket_set);
+            return 0;
+        }
         msg = buf;
+        return 1;
     }
 
     /*int recive(string &msg, int &socket) {
