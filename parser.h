@@ -61,8 +61,8 @@ class parser {
                 offset += 2;
                 res.push_back(st);
             }            
-            return res;
         }
+        return res;
     }
 
     string encodeSimpleString(string msg) {

@@ -27,6 +27,7 @@ class handler {
     string del(vector<string> req) {
         cout << "DEL: " << req[1] << endl;
         cont_->del_val(req[1]);
+        cout << "now realy del\n";
         return pars_.encodeSimpleString("OK");
     }
 

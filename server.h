@@ -13,8 +13,9 @@ class server {
     struct sockaddr_in addr;
     fd_set socket_set;
     int max_sock;
-    vector<int> socks;
     vector<string> reminder;
+    vector<int> socks;
+    vector<int> state;
     vector<int> stop;
 
  public:
@@ -42,16 +43,27 @@ class server {
     }
 
     void get_client() {
-        cout << "try to accept" << endl;
         int sock = accept(listener, NULL, NULL);
-        cout << "sock is " << sock << endl;
         FD_SET(sock, &socket_set);
         socks.push_back(sock);
         max_sock = max(sock, max_sock);
         reminder.push_back("");
         stop.push_back(0);
-        cout << "added client correctly" << endl;
+        state.push_back(0);
         this->get_client();
+    }
+
+    void remove_client(int sock_num) {
+        int socket = socks[sock_num];
+        swap(socks[sock_num], socks[socks.size() - 1]);
+        socks.pop_back();
+        swap(reminder[sock_num], reminder[reminder.size() - 1]);
+        reminder.pop_back();
+        swap(state[sock_num], state[state.size() - 1]);
+        state.pop_back();
+        swap(stop[sock_num], stop[stop.size() - 1]);
+        stop.pop_back();
+        FD_CLR(socket, &socket_set);
     }
 
     int get_sender() {
@@ -71,77 +83,105 @@ class server {
         int sock_num = get_sender();
         if (sock_num == -1)
             return 0;
+        cout << sock_num << endl;
         cout << "Recive" << endl;
         socket = socks[sock_num];
+        cout << socket << endl;
         char buf[1024];
-        if (recv(socket, buf, 1024, 0) <= 0) {
-            swap(socks[sock_num], socks[socks.size() - 1]);
-            socks.pop_back();
-            FD_CLR(socket, &socket_set);
-            return 0;
+        string mes = reminder[sock_num];
+        int size = 0, pointer = 0, start;
+        state[sock_num] = -1;
+        while (state[sock_num] == -1) {
+            if (pointer >= mes.size()) {
+                if (recv(socket, buf, 1024, 0) <= 0) {
+                    remove_client(sock_num);
+                    close(socket);
+                    return 0;
+                }
+                mes += string(buf);
+                continue;
+            }
+            if (mes[pointer] == '*') {
+                start = pointer;
+                state[sock_num]++;
+            }
+            pointer++;
         }
-        msg = buf;
+        while (state[sock_num] == 0) { // read array size
+            if (pointer >= mes.size()) {
+                if (recv(socket, buf, 1024, 0) <= 0) {
+                    remove_client(sock_num);
+                    close(socket);
+                    return 0;
+                }
+                mes += string(buf);
+                continue;
+            }
+            if (mes[pointer] <= '9' && mes[pointer] >= '0') {
+                size = size * 10 + mes[pointer] - '0';
+                pointer++;
+            }
+            else
+                state[sock_num]++;
+        }
+        pointer += 2; // skip '/r/n'
+
+        int length = 0;
+        while (size > 0) { // read SIZE strings
+            if (pointer >= mes.size()) {
+                if (recv(socket, buf, 1024, 0) <= 0) {
+                    remove_client(sock_num);
+                    close(socket);
+                    return 0;
+                }
+                mes += string(buf);
+                continue;
+            }
+            if (state[sock_num] == 1) { // read length
+                if (mes[pointer] == '$') {
+                    pointer++;
+                    continue;
+                }
+                if (mes[pointer] <= '9' && mes[pointer] >= '0') {
+                    length = length * 10 + mes[pointer] - '0';
+                    pointer++;
+                }
+                else {
+                    state[sock_num]++;
+                    pointer += 2; // skip '/r/n'
+                }
+                continue;
+            }
+            if (state[sock_num] == 2) { // read string
+                pointer += length; // skip LENGTH chars
+                pointer += 2; // skip '/r/n'
+                while (pointer > mes.size()) {
+                    if (recv(socket, buf, 1024, 0) <= 0) {
+                        remove_client(sock_num);
+                        close(socket);
+                        return 0;
+                    }
+                    mes += string(buf);
+                }
+                state[sock_num]--;
+                length = 0;
+                size--;
+                continue;
+            }
+        }
+
+        if (size != 0)
+            return 0;
+
+        msg = "";
+        for (int i = start; i < pointer; i++)
+            msg += mes[i];
+
+        reminder[sock_num] = "";
+        for (int i = pointer; i < mes.length(); i++)
+            reminder[sock_num] += mes[i];
         return 1;
     }
-
-    /*int recive(string &msg, int &socket) {
-        int sock = get_sender();
-        socket = socks[sock];
-        cout << "sock is " << sock << " socket with number " << socket << endl;
-        if (sock == -1)
-            return 1;
-        if (stop[sock] == 1)
-            return 1;
-        char buf[1024];
-        string s;
-        int offset = 0;
-        int working = 1;
-        while (offset < reminder[sock].length() && reminder[sock][offset] <= '9' && reminder[sock][offset] >= '0') {
-            s += reminder[sock][offset];
-            offset++;
-        }
-        if (offset == reminder[sock].length()) {
-            if (recv(socks[sock], buf, 1024, 0) == 0)
-                stop[sock] = 1;
-            reminder[sock] += buf;
-            offset++;
-            while (offset < reminder[sock].length() && reminder[sock][offset] <= '9' && reminder[sock][offset] >= '0') {
-                s += reminder[sock][offset];
-                offset++;
-            }
-        }
-        if (reminder[sock].length() < 2) {
-            stop[sock] = 1;
-            return 1;
-        }
-        if (s == "") {
-            stop[sock] = 1;
-            return 1;
-        }
-        int t = stoi(s) * 2 + 1;
-        offset = 0;
-        while (t > 0) {
-            if (offset + 1 <= reminder[sock].length() && reminder[sock][offset] == '\r' && reminder[sock][offset + 1] == '\n')
-                t--;
-            if (offset >= reminder[sock].length()) {
-                if (recv(socks[sock], buf, 1024, 0) == 0)
-                    stop[sock] = 1;
-                reminder[sock] += buf;
-            } else {
-                offset++;
-            }
-        }
-        string res, rem;
-        for (int i = 0; i < offset; i++) {
-            res += reminder[sock][i];
-        }
-        for (int i = offset; i < reminder[sock].length(); i++) {
-            rem += reminder[sock][i];
-        }
-        reminder[sock] = rem;
-        msg = res;
-        return 1;
-    }*/
 
     int respond(string msg, int sock_) {
         cout << "Responding" << endl;
