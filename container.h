@@ -28,14 +28,12 @@ class container {
     }
 
     void del_(const string &key) {
-        cout << "ETO ";
         container_.erase(key);
         ttl_.erase(key);
         auto it = ttl_set_.lower_bound(make_pair(key, 0));
         it++;
         if (it != ttl_set_.end() && it->first == key)
             ttl_set_.erase(it);
-        cout << "STRANNO\n";
     }
 
     int set_ttl_(const string &key, const long long &ttl) {
@@ -192,8 +190,7 @@ class container {
     }
 
     void del_val(const string &key) {
-        cout << "SCHTO PROIZOSHLO?";
-        //this->del_(key);
+        this->del_(key);
         log << "2#" << key.length() << '$' << key << "0$";
         log.flush();
     }
