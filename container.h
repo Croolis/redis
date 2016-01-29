@@ -31,7 +31,8 @@ class container {
         container_.erase(key);
         ttl_.erase(key);
         auto it = ttl_set_.lower_bound(make_pair(key, 0));
-        it++;
+        if (it != ttl_set_.end())
+            it++;
         if (it != ttl_set_.end() && it->first == key)
             ttl_set_.erase(it);
     }
@@ -115,6 +116,7 @@ class container {
 
  public:
     container() {
+        // TODO: add TTL to set_ttl_
         load_from_file("log.t");
         log.open("log.t");
         auto t = container_.begin();
@@ -184,13 +186,17 @@ class container {
     }
 
     string get_val(const string &key) {
-        if (ttl_.count(key) > 0 && ttl_[key] <= time(NULL))
-            this->del_val(key);
+        if (ttl_.count(key) > 0 && ttl_[key] <= time(NULL)) {
+            cout << "delete because of TTL\n";    
+	        this->del_val(key);
+	}
         return container_[key];
     }
 
     void del_val(const string &key) {
+        cout << "try to del val\n";
         this->del_(key);
+        cout << "succeed\n";
         log << "2#" << key.length() << '$' << key << "0$";
         log.flush();
     }
